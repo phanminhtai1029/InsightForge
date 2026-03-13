@@ -104,7 +104,7 @@ def build_agent(
 
     llm = Ollama(
         model=config.llm_model,
-        base_url="http://localhost:11434",
+        base_url=config.ollama_base_url,
         request_timeout=120.0,
         additional_kwargs={"keep_alive": config.llm_keep_alive},
     )

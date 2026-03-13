@@ -21,7 +21,7 @@ def query_index(folder_path: str, query: str, config: Config | None = None) -> s
 
     embed_model = OllamaEmbedding(
         model_name=config.embed_model,
-        base_url="http://localhost:11434",
+        base_url=config.ollama_base_url,
         ollama_additional_kwargs={"keep_alive": config.embed_keep_alive},
     )
 

@@ -72,7 +72,7 @@ def cli(folder: str, model: str | None, fresh: bool):
         sys.exit(0)
 
     # 2. Kiểm tra Ollama
-    checker = OllamaChecker()
+    checker = OllamaChecker(base_url=config.ollama_base_url)
     if checker.is_available():
         console.print(f"\n[bold green]InsightForge[/bold green] — {folder_path}")
         console.print("[dim]Commands: /scan, /stack, /index, /history, /history delete <n|all>, /save, /clear, /exit[/dim]")
