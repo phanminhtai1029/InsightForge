@@ -1,7 +1,7 @@
 [project]
 name = "insightforge"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered local codebase analyst — RAG, tech stack detection, and GitHub reader via Ollama"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

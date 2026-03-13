@@ -1,0 +1,44 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Virtual environments
+.venv
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sensitive / secrets
+.env
+.env.*
+*.env
+*.key
+*.pem
+
+# InsightForge runtime data (stored in ~/.insightforge/, not project dir)
+chroma/
+.insightforge/
+
+# Internal planning docs
+docs/plans/
+insightforge/CLAUDE.md
+tests/CLAUDE.md
