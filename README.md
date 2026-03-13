@@ -4,8 +4,48 @@
 
 ![Python](https://img.shields.io/badge/python-3.13%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Tests](https://img.shields.io/badge/tests-52%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-54%20passing-brightgreen)
 ![LLM](https://img.shields.io/badge/LLM-Ollama%20local-orange)
+
+---
+
+## Quick Start
+
+### Option 1 — One-line install (macOS / Linux / WSL2)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/phanminhtai1029/InsightForge/master/install.sh | bash
+```
+
+Script tự động: cài `uv` → clone repo → cài Ollama → pull models (~5 GB) → tạo lệnh `insightforge`.
+
+Sau khi xong:
+
+```bash
+insightforge /path/to/your/project
+```
+
+### Option 2 — Docker (mọi OS có Docker)
+
+Yêu cầu: [Docker Desktop](https://www.docker.com/products/docker-desktop) + Ollama chạy trên máy host với models đã pull.
+
+```bash
+git clone https://github.com/phanminhtai1029/InsightForge.git
+cd InsightForge
+docker compose run --rm insightforge /path/to/your/project
+```
+
+Hoặc dùng `make`:
+
+```bash
+make docker-build
+make docker-run PROJECT_DIR=/path/to/your/project
+```
+
+**Lưu ý:**
+- **macOS/Windows Docker Desktop:** Ollama phải đang chạy trên máy host — container tự kết nối qua `host.docker.internal`.
+- **Linux host Ollama:** Dùng `OLLAMA_HOST=http://172.17.0.1:11434 docker compose run ...` nếu `host.docker.internal` không resolve.
+- **NVIDIA GPU (Ollama trong container):** `make docker-run-gpu` — yêu cầu [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
 
 ---
 
@@ -40,6 +80,10 @@ ollama pull nomic-embed-text    # Embeddings (~137 MB)
 
 ## Installation
 
+> **Muốn cài nhanh?** Xem [Quick Start](#quick-start) — one-line install hoặc Docker.
+
+**Manual / Developer setup:**
+
 ```bash
 # Clone the repo
 git clone https://github.com/phanminhtai1029/InsightForge.git
@@ -52,23 +96,6 @@ uv sync
 source .venv/bin/activate       # Linux/macOS
 # .venv\Scripts\activate        # Windows
 ```
-
----
-
-## Quick Start
-
-```bash
-# Analyze your current project
-insightforge .
-
-# Or point to any folder
-insightforge /path/to/your/project
-```
-
-On first run, InsightForge will:
-1. Check Ollama availability
-2. Scan for sensitive files and warn you
-3. Offer to load previous conversation history
 
 ---
 
@@ -204,7 +231,13 @@ InsightForge/
 │       ├── retriever.py     # ChromaDB query
 │       ├── history.py       # Session history manager
 │       └── github.py        # GitHub REST API reader
-├── tests/                   # 52 tests (pytest)
+├── tests/                   # 54 tests (pytest)
+├── Dockerfile               # Container image
+├── docker-compose.yml       # Default compose (host Ollama)
+├── docker-compose.gpu.yml   # GPU override (Ollama in container)
+├── entrypoint.sh            # Docker entrypoint with GPU hint
+├── install.sh               # One-line native installer
+├── Makefile                 # Convenience targets
 ├── pyproject.toml
 └── uv.lock
 ```
