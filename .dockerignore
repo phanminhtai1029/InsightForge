@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[oc]
+*.egg-info/
+.pytest_cache/
+.git/
+.idea/
+.vscode/
+docs/plans/
+tests/
+*.md
+Makefile
+install.sh
