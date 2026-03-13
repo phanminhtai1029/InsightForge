@@ -11,8 +11,9 @@ GITHUB_API = "https://api.github.com"
 
 _CODE_EXTS = {
     ".py", ".ts", ".js", ".tsx", ".jsx", ".go", ".rs", ".java",
-    ".rb", ".php", ".cs", ".cpp", ".c", ".h", ".sh", ".yaml", ".yml",
-    ".toml", ".json", ".md", ".sql", ".html", ".css",
+    ".rb", ".php", ".cs", ".cpp", ".c", ".h", ".cu", ".cuh",
+    ".sh", ".bash", ".yaml", ".yml", ".toml", ".json", ".md",
+    ".sql", ".html", ".css", ".swift", ".kt", ".scala", ".r",
 }
 
 
