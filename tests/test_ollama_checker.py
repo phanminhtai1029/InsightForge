@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch, MagicMock
 from insightforge.ollama_checker import OllamaChecker
 
@@ -35,10 +36,8 @@ def test_online_commands_includes_chat():
     assert "chat" in cmds
 
 
-import json as _json
-
 def test_has_model_returns_true_when_model_present():
-    tags_response = _json.dumps({"models": [{"name": "qwen2.5:7b"}]}).encode()
+    tags_response = json.dumps({"models": [{"name": "qwen2.5:7b"}]}).encode()
     mock_resp = MagicMock()
     mock_resp.__enter__ = lambda s: s
     mock_resp.__exit__ = MagicMock(return_value=False)
@@ -48,7 +47,7 @@ def test_has_model_returns_true_when_model_present():
         assert checker.has_model("qwen2.5:7b") is True
 
 def test_has_model_returns_false_when_model_not_in_list():
-    tags_response = _json.dumps({"models": [{"name": "llama3.2:latest"}]}).encode()
+    tags_response = json.dumps({"models": [{"name": "llama3.2:latest"}]}).encode()
     mock_resp = MagicMock()
     mock_resp.__enter__ = lambda s: s
     mock_resp.__exit__ = MagicMock(return_value=False)
