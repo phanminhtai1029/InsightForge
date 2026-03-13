@@ -13,6 +13,7 @@ from insightforge.tools.runner import run_script
 from insightforge.tools.scanner import scan_folder
 from insightforge.tools.scanner import read_file as _read_file
 from insightforge.tools.stack import analyze_stack
+from insightforge.tools.github import scan_github_repo, read_github_file
 
 
 class SyncAgent:
@@ -77,6 +78,18 @@ def build_agent(
         result = history.search(query)
         return result if result else "Không tìm thấy trong history."
 
+    def tool_scan_github_repo(repo: str, branch: str = "HEAD") -> str:
+        """Liệt kê cấu trúc file của một GitHub repo (công khai hoặc private với GITHUB_TOKEN).
+        repo: 'owner/repo' hoặc URL GitHub đầy đủ. branch: nhánh muốn xem (mặc định HEAD).
+        """
+        return scan_github_repo(repo, branch)
+
+    def tool_read_github_file(repo: str, file_path: str, branch: str = "HEAD") -> str:
+        """Đọc nội dung một file từ GitHub repo.
+        repo: 'owner/repo' hoặc URL GitHub. file_path: đường dẫn file trong repo (vd: 'src/main.py').
+        """
+        return read_github_file(repo, file_path, branch)
+
     tools = [
         FunctionTool.from_defaults(fn=tool_scan_folder, name="scan_folder"),
         FunctionTool.from_defaults(fn=tool_read_file, name="read_file"),
@@ -85,6 +98,8 @@ def build_agent(
         FunctionTool.from_defaults(fn=tool_query_index, name="query_index"),
         FunctionTool.from_defaults(fn=tool_run_script, name="run_script"),
         FunctionTool.from_defaults(fn=tool_search_history, name="search_history"),
+        FunctionTool.from_defaults(fn=tool_scan_github_repo, name="scan_github_repo"),
+        FunctionTool.from_defaults(fn=tool_read_github_file, name="read_github_file"),
     ]
 
     llm = Ollama(

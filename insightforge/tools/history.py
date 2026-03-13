@@ -51,6 +51,27 @@ class SessionHistory:
             return ""
         return "\n---\n".join(relevant[:4])  # trả về tối đa 4 đoạn
 
+    def delete_session(self, name: str) -> bool:
+        """Xóa một session theo tên file (vd: '2026-03-13_13h30.md'). Trả về True nếu thành công."""
+        target = self.session_dir / name
+        if target.exists() and target.suffix == ".md":
+            target.unlink()
+            latest = self.session_dir / "latest.txt"
+            if latest.exists() and latest.read_text(encoding="utf-8").strip() == name:
+                latest.unlink()
+            return True
+        return False
+
+    def delete_all_sessions(self) -> int:
+        """Xóa toàn bộ session đã lưu. Trả về số session đã xóa."""
+        sessions = self.list_sessions()
+        for f in sessions:
+            f.unlink()
+        latest = self.session_dir / "latest.txt"
+        if latest.exists():
+            latest.unlink()
+        return len(sessions)
+
     def export_markdown(self) -> str:
         lines = [
             f"# InsightForge Session — {self._timestamp}",

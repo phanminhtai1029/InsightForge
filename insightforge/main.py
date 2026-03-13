@@ -75,7 +75,8 @@ def cli(folder: str, model: str | None, fresh: bool):
     checker = OllamaChecker()
     if checker.is_available():
         console.print(f"\n[bold green]InsightForge[/bold green] — {folder_path}")
-        console.print("[dim]Commands: /scan, /stack, /index, /history, /save, /clear, /exit[/dim]\n")
+        console.print("[dim]Commands: /scan, /stack, /index, /history, /history delete <n|all>, /save, /clear, /exit[/dim]")
+        console.print("[dim]Chat: hỏi AI để scan GitHub repo, đọc file từ URL, phân tích code...[/dim]\n")
     else:
         console.print(f"\n[bold green]InsightForge[/bold green] — {folder_path}")
         console.print(checker.offline_banner())
@@ -132,13 +133,40 @@ def cli(folder: str, model: str | None, fresh: bool):
             console.print(analyze_stack(folder_path))
             continue
 
-        if user_input == "/history":
+        if user_input.startswith("/history"):
+            parts = user_input.split(maxsplit=2)
             sessions = history.list_sessions()
+
+            # /history delete all
+            if len(parts) == 3 and parts[1] == "delete" and parts[2] == "all":
+                if not sessions:
+                    console.print("[dim]Chưa có session nào để xóa.[/dim]")
+                elif Confirm.ask(f"Xóa tất cả {len(sessions)} session?", default=False):
+                    n = history.delete_all_sessions()
+                    console.print(f"[green]Đã xóa {n} session.[/green]")
+                continue
+
+            # /history delete <n>
+            if len(parts) == 3 and parts[1] == "delete":
+                try:
+                    idx = int(parts[2]) - 1
+                    if 0 <= idx < len(sessions):
+                        name = sessions[idx].name
+                        history.delete_session(name)
+                        console.print(f"[green]Đã xóa:[/green] {name}")
+                    else:
+                        console.print(f"[yellow]Số thứ tự không hợp lệ. Có {len(sessions)} session.[/yellow]")
+                except ValueError:
+                    console.print("[yellow]Dùng: /history delete <số> hoặc /history delete all[/yellow]")
+                continue
+
+            # /history (list)
             if not sessions:
                 console.print("[dim]Chưa có session nào.[/dim]")
             else:
-                for s in sessions:
-                    console.print(f"  [dim]{s.name}[/dim]")
+                for i, s in enumerate(sessions, 1):
+                    console.print(f"  [cyan]{i}.[/cyan] [dim]{s.name}[/dim]")
+                console.print(f"\n[dim]Dùng /history delete <số> hoặc /history delete all để xóa.[/dim]")
             continue
 
         if user_input.startswith("/save"):
