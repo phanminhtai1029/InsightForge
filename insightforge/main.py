@@ -11,7 +11,7 @@ from insightforge.config import Config
 from insightforge.guard import GuardLayer
 from insightforge.ollama_checker import OllamaChecker
 from insightforge.tools.history import SessionHistory
-from insightforge.tools.scanner import scan_folder
+from insightforge.tools.scanner import scan_folder, IGNORED_DIRS
 from insightforge.tools.stack import analyze_stack
 
 console = Console()
@@ -34,7 +34,9 @@ def check_sensitive_files(folder_path: str, guard: GuardLayer) -> bool:
     sensitive = [
         str(p.relative_to(root))
         for p in root.rglob("*")
-        if p.is_file() and guard.is_sensitive_filename(p.name)
+        if p.is_file()
+        and not any(part in IGNORED_DIRS for part in p.parts)
+        and guard.is_sensitive_filename(p.name)
     ]
     if not sensitive:
         return True
