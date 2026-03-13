@@ -1,5 +1,5 @@
+import json
 import urllib.request
-from dataclasses import dataclass, field
 
 OLLAMA_BASE_URL = "http://localhost:11434"
 
@@ -7,11 +7,7 @@ OFFLINE_COMMANDS = ["/scan", "/stack", "/history", "/save", "/clear", "/exit"]
 ONLINE_COMMANDS = OFFLINE_COMMANDS + ["chat", "/index"]
 
 
-@dataclass
 class OllamaChecker:
-    base_url: str = OLLAMA_BASE_URL
-    available: bool = field(init=False)
-
     def __init__(self, base_url: str = OLLAMA_BASE_URL, available: bool | None = None):
         self.base_url = base_url
         if available is not None:
@@ -35,7 +31,6 @@ class OllamaChecker:
         try:
             url = f"{self.base_url}/api/tags"
             with urllib.request.urlopen(url, timeout=3) as resp:
-                import json
                 data = json.loads(resp.read())
                 models = [m["name"] for m in data.get("models", [])]
                 # match exact or prefix (qwen2.5:7b matches qwen2.5:7b)
@@ -48,8 +43,8 @@ class OllamaChecker:
 
     def offline_banner(self) -> str:
         return (
-            "\n[yellow]⚠ Ollama không tìm thấy tại localhost:11434[/yellow]\n"
-            "[dim]Chạy offline mode — chat AI bị tắt.\n"
+            f"\n[yellow]⚠ Ollama không tìm thấy tại {self.base_url}[/yellow]\n"
+            f"[dim]Chạy offline mode — chat AI bị tắt.\n"
             f"Lệnh khả dụng: {', '.join(OFFLINE_COMMANDS)}\n"
             "Để bật chat: [bold]ollama serve[/bold][/dim]\n"
         )

@@ -33,3 +33,31 @@ def test_online_commands_includes_chat():
     checker = OllamaChecker(available=True)
     cmds = checker.available_commands()
     assert "chat" in cmds
+
+
+import json as _json
+
+def test_has_model_returns_true_when_model_present():
+    tags_response = _json.dumps({"models": [{"name": "qwen2.5:7b"}]}).encode()
+    mock_resp = MagicMock()
+    mock_resp.__enter__ = lambda s: s
+    mock_resp.__exit__ = MagicMock(return_value=False)
+    mock_resp.read.return_value = tags_response
+    with patch("urllib.request.urlopen", return_value=mock_resp):
+        checker = OllamaChecker(available=True)
+        assert checker.has_model("qwen2.5:7b") is True
+
+def test_has_model_returns_false_when_model_not_in_list():
+    tags_response = _json.dumps({"models": [{"name": "llama3.2:latest"}]}).encode()
+    mock_resp = MagicMock()
+    mock_resp.__enter__ = lambda s: s
+    mock_resp.__exit__ = MagicMock(return_value=False)
+    mock_resp.read.return_value = tags_response
+    with patch("urllib.request.urlopen", return_value=mock_resp):
+        checker = OllamaChecker(available=True)
+        assert checker.has_model("qwen2.5:7b") is False
+
+def test_has_model_returns_false_when_api_raises():
+    with patch("urllib.request.urlopen", side_effect=Exception("connection reset")):
+        checker = OllamaChecker(available=True)
+        assert checker.has_model("qwen2.5:7b") is False
