@@ -1,4 +1,6 @@
-from llama_index.core.agent import ReActAgent
+import asyncio
+
+from llama_index.core.agent import AgentWorkflow
 from llama_index.core.tools import FunctionTool
 from llama_index.llms.ollama import Ollama
 
@@ -13,11 +15,26 @@ from insightforge.tools.scanner import read_file as _read_file
 from insightforge.tools.stack import analyze_stack
 
 
+class SyncAgent:
+    """Wrapper đồng bộ xung quanh AgentWorkflow async của LlamaIndex 0.14+."""
+
+    def __init__(self, workflow: AgentWorkflow) -> None:
+        self._workflow = workflow
+
+    def chat(self, message: str) -> str:
+        async def _run() -> str:
+            handler = self._workflow.run(user_msg=message)
+            result = await handler
+            return str(result)
+
+        return asyncio.run(_run())
+
+
 def build_agent(
     folder_path: str,
     config: Config | None = None,
     history: SessionHistory | None = None,
-) -> ReActAgent:
+) -> SyncAgent:
     if config is None:
         config = Config()
 
@@ -77,4 +94,10 @@ def build_agent(
         additional_kwargs={"keep_alive": config.llm_keep_alive},
     )
 
-    return ReActAgent.from_tools(tools, llm=llm, verbose=False)
+    workflow = AgentWorkflow.from_tools_or_functions(
+        tools_or_functions=tools,
+        llm=llm,
+        verbose=False,
+    )
+
+    return SyncAgent(workflow)
