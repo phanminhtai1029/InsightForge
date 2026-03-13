@@ -9,14 +9,31 @@ def _read_json(path: Path) -> dict:
         return {}
 
 
+def _read_reqs(root: Path) -> str:
+    """Đọc tất cả requirements files, trả về unified lowercase string."""
+    content_parts = []
+    for req_file in [
+        "requirements.txt", "requirements/base.txt",
+        "requirements/prod.txt", "requirements/main.txt",
+    ]:
+        p = root / req_file
+        if p.exists():
+            content_parts.append(p.read_text().lower())
+    if (root / "pyproject.toml").exists():
+        content_parts.append((root / "pyproject.toml").read_text().lower())
+    return "\n".join(content_parts)
+
+
 def analyze_stack(folder_path: str) -> str:
     root = Path(folder_path)
     detected: dict[str, list[str]] = {
-        "Frontend": [], "Backend": [], "Database": [],
-        "CI/CD": [], "Cloud": [], "Container": [],
+        "Frontend": [], "Backend": [], "AI/ML": [],
+        "Database": [], "CI/CD": [], "Cloud": [], "Container": [],
     }
 
-    # Frontend
+    req_content = _read_reqs(root)
+
+    # Frontend (JS/TS)
     pkg = root / "package.json"
     if pkg.exists():
         data = _read_json(pkg)
@@ -36,22 +53,35 @@ def analyze_stack(folder_path: str) -> str:
         if (root / name).exists():
             detected["Frontend"].append("Vite")
 
-    # Backend
-    for req_file in ["requirements.txt", "requirements/base.txt"]:
-        req_path = root / req_file
-        if req_path.exists():
-            content = req_path.read_text().lower()
-            if "fastapi" in content:
-                detected["Backend"].append("FastAPI")
-            if "django" in content:
-                detected["Backend"].append("Django")
-            if "flask" in content:
-                detected["Backend"].append("Flask")
+    # Frontend (Python UI)
+    if req_content:
+        if "streamlit" in req_content:
+            detected["Frontend"].append("Streamlit")
+        if "gradio" in req_content:
+            detected["Frontend"].append("Gradio")
 
-    if (root / "pyproject.toml").exists():
-        content = (root / "pyproject.toml").read_text().lower()
-        if "fastapi" in content:
+    # Backend (web frameworks)
+    if req_content:
+        if "fastapi" in req_content:
             detected["Backend"].append("FastAPI")
+        if "django" in req_content:
+            detected["Backend"].append("Django")
+        if "flask" in req_content:
+            detected["Backend"].append("Flask")
+        if "aiohttp" in req_content:
+            detected["Backend"].append("aiohttp")
+        # Scrapers / crawlers
+        if "selenium" in req_content or "playwright" in req_content:
+            detected["Backend"].append("Selenium/Playwright")
+        if "beautifulsoup" in req_content or "bs4" in req_content:
+            detected["Backend"].append("BeautifulSoup")
+        if "scrapy" in req_content:
+            detected["Backend"].append("Scrapy")
+        # Bots
+        if "python-telegram-bot" in req_content or "telegram" in req_content:
+            detected["Backend"].append("Telegram Bot")
+        if "discord" in req_content:
+            detected["Backend"].append("Discord Bot")
 
     if (root / "go.mod").exists():
         detected["Backend"].append("Go")
@@ -59,6 +89,59 @@ def analyze_stack(folder_path: str) -> str:
         detected["Backend"].append("Java/Spring")
     if (root / "Cargo.toml").exists():
         detected["Backend"].append("Rust")
+
+    # AI/ML
+    if req_content:
+        # LLM providers
+        if "openai" in req_content:
+            detected["AI/ML"].append("OpenAI")
+        if "anthropic" in req_content:
+            detected["AI/ML"].append("Anthropic")
+        if "groq" in req_content:
+            detected["AI/ML"].append("Groq")
+        if "google-generativeai" in req_content or "google.generativeai" in req_content:
+            detected["AI/ML"].append("Google Gemini")
+        if "ollama" in req_content:
+            detected["AI/ML"].append("Ollama")
+        # Frameworks
+        if "langchain" in req_content:
+            detected["AI/ML"].append("LangChain")
+        if "llama-index" in req_content or "llama_index" in req_content:
+            detected["AI/ML"].append("LlamaIndex")
+        if "haystack" in req_content:
+            detected["AI/ML"].append("Haystack")
+        # ML/Deep Learning
+        if "torch" in req_content or "pytorch" in req_content:
+            detected["AI/ML"].append("PyTorch")
+        if "tensorflow" in req_content or "tf " in req_content:
+            detected["AI/ML"].append("TensorFlow")
+        if "transformers" in req_content:
+            detected["AI/ML"].append("HuggingFace Transformers")
+        if "sentence-transformers" in req_content:
+            detected["AI/ML"].append("Sentence Transformers")
+        # Data
+        if "pandas" in req_content:
+            detected["AI/ML"].append("Pandas")
+        if "numpy" in req_content:
+            detected["AI/ML"].append("NumPy")
+        if "scikit-learn" in req_content or "sklearn" in req_content:
+            detected["AI/ML"].append("scikit-learn")
+        # OCR
+        if "easyocr" in req_content:
+            detected["AI/ML"].append("EasyOCR")
+        if "pytesseract" in req_content:
+            detected["AI/ML"].append("Tesseract OCR")
+        if "paddleocr" in req_content:
+            detected["AI/ML"].append("PaddleOCR")
+        # Vector search
+        if "faiss" in req_content:
+            detected["AI/ML"].append("FAISS")
+        if "chromadb" in req_content:
+            detected["AI/ML"].append("ChromaDB")
+        if "qdrant" in req_content:
+            detected["AI/ML"].append("Qdrant")
+        if "modal" in req_content:
+            detected["AI/ML"].append("Modal (serverless GPU)")
 
     # Database
     if (root / "docker-compose.yml").exists() or (root / "docker-compose.yaml").exists():
@@ -74,6 +157,18 @@ def analyze_stack(folder_path: str) -> str:
                     detected["Database"].append("Redis")
                 if "mongo" in content:
                     detected["Database"].append("MongoDB")
+
+    if req_content:
+        if "psycopg" in req_content or "asyncpg" in req_content:
+            detected["Database"].append("PostgreSQL")
+        if "pymongo" in req_content:
+            detected["Database"].append("MongoDB")
+        if "redis" in req_content:
+            detected["Database"].append("Redis")
+        if "elasticsearch" in req_content:
+            detected["Database"].append("Elasticsearch")
+        if "sqlalchemy" in req_content:
+            detected["Database"].append("SQLAlchemy")
 
     if (root / "prisma").exists():
         detected["Database"].append("Prisma ORM")
@@ -118,7 +213,7 @@ def analyze_stack(folder_path: str) -> str:
     if not has_anything:
         return f"Không phát hiện tech stack nào trong {folder_path}"
 
-    sep = "━" * 42
+    sep = "━" * 48
     lines = [sep, f"  CODEBASE ARCHITECTURE — {Path(folder_path).name}", sep]
     for category, items in detected.items():
         if items:
