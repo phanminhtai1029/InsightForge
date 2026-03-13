@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from dataclasses import dataclass, field
 
@@ -8,6 +9,9 @@ class Config:
     embed_model: str = "nomic-embed-text"
     llm_keep_alive: str = "5m"     # unload after 5 minutes idle
     embed_keep_alive: str = "0"    # unload immediately after use
+    ollama_base_url: str = field(
+        default_factory=lambda: os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+    )
     insightforge_dir: Path = field(default_factory=lambda: Path.home() / ".insightforge")
     chroma_dir: Path = field(init=False)
     sessions_dir: Path = field(init=False)
