@@ -9,5 +9,8 @@ __pycache__/
 docs/plans/
 tests/
 *.md
+!README.md
 Makefile
 install.sh
+run.sh
+run.ps1
