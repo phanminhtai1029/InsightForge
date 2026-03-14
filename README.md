@@ -11,41 +11,39 @@
 
 ## Quick Start
 
-### Option 1 — One-line install (macOS / Linux / WSL2)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/phanminhtai1029/InsightForge/master/install.sh | bash
-```
-
-Script tự động: cài `uv` → clone repo → cài Ollama → pull models (~5 GB) → tạo lệnh `insightforge`.
-
-Sau khi xong:
-
-```bash
-insightforge /path/to/your/project
-```
-
-### Option 2 — Docker (mọi OS có Docker)
-
-Yêu cầu: [Docker Desktop](https://www.docker.com/products/docker-desktop) + Ollama chạy trên máy host với models đã pull.
+### Bước 1 — Clone & Build (5-15 phút lần đầu)
 
 ```bash
 git clone https://github.com/phanminhtai1029/InsightForge.git
 cd InsightForge
-docker compose run --rm insightforge /path/to/your/project
+docker build -t insightforge:local .
 ```
 
-Hoặc dùng `make`:
+> Build sẽ tự download models (~5GB). Sau đó image chạy instant, không cần internet.
 
+**Muốn dùng model khác?** Vào [ollama.com/search](https://ollama.com/search), chọn model, rồi:
 ```bash
-make docker-build
-make docker-run PROJECT_DIR=/path/to/your/project
+docker build --build-arg LLM=llama3.2 -t insightforge:local .
 ```
 
-**Lưu ý:**
-- **macOS/Windows Docker Desktop:** Ollama phải đang chạy trên máy host — container tự kết nối qua `host.docker.internal`.
-- **Linux host Ollama:** Dùng `OLLAMA_HOST=http://172.17.0.1:11434 docker compose run ...` nếu `host.docker.internal` không resolve.
-- **NVIDIA GPU (Ollama trong container):** `make docker-run-gpu` — yêu cầu [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
+### Bước 2 — Chạy (tự detect GPU)
+
+**Linux / Mac / WSL2:**
+```bash
+bash run.sh /path/to/your/project
+# hoặc dùng make:
+make run PROJECT_DIR=/path/to/your/project
+```
+
+**Windows (PowerShell):**
+```powershell
+.\run.ps1 C:\path\to\your\project
+# hoặc dùng make:
+make run-win PROJECT_DIR=C:\path\to\your\project
+```
+
+> Script tự detect NVIDIA GPU — nếu có sẽ dùng CUDA, không có sẽ dùng CPU.
+> Lần chạy đầu tiên tạo volume `insightforge_data` để lưu ChromaDB index + session history.
 
 ---
 
@@ -233,8 +231,7 @@ InsightForge/
 │       └── github.py        # GitHub REST API reader
 ├── tests/                   # 54 tests (pytest)
 ├── Dockerfile               # Container image
-├── docker-compose.yml       # Default compose (host Ollama)
-├── docker-compose.gpu.yml   # GPU override (Ollama in container)
+├── docker-compose.yml       # Self-contained compose (Ollama + models baked in)
 ├── entrypoint.sh            # Docker entrypoint with GPU hint
 ├── install.sh               # One-line native installer
 ├── Makefile                 # Convenience targets
