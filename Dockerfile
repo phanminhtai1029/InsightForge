@@ -1,27 +1,40 @@
-FROM python:3.13-slim
+FROM ollama/ollama:latest
 
-# Install uv
+# Cài uv (quản lý Python + deps)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 WORKDIR /app
 
-# Copy dependency files first (layer caching)
-COPY pyproject.toml uv.lock ./
+# Layer 1: deps — chỉ rebuild khi pyproject.toml / uv.lock thay đổi
+COPY pyproject.toml uv.lock README.md .python-version ./
+RUN uv sync --no-dev --frozen --no-install-project
 
-# Install deps (no dev, no editable)
-RUN uv sync --no-dev --frozen
-
-# Copy source code
+# Layer 2: source code
 COPY insightforge/ ./insightforge/
+RUN uv sync --no-dev --frozen --no-editable
 
-# GPU detection + exec wrapper
+# Layer 3: bake models vào image khi docker build
+ARG LLM=qwen2.5:7b
+ARG EMBED=nomic-embed-text
+
+RUN ollama serve & OLLAMA_PID=$! && \
+    for i in $(seq 1 30); do \
+      ollama list >/dev/null 2>&1 && break; \
+      sleep 1; \
+    done && \
+    ollama pull ${LLM} && \
+    ollama pull ${EMBED}; \
+    MODEL_EXIT=$?; \
+    kill $OLLAMA_PID 2>/dev/null; \
+    wait $OLLAMA_PID 2>/dev/null; \
+    exit $MODEL_EXIT
+
+# entrypoint sẽ start ollama + exec insightforge
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Activate venv on PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Default: analyze /workspace (mounted by user)
 VOLUME ["/workspace"]
-ENTRYPOINT ["/entrypoint.sh", "insightforge"]
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/workspace"]
