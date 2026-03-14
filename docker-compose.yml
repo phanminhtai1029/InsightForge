@@ -1,23 +1,18 @@
 services:
   insightforge:
-    build: .
+    build:
+      context: .
+      args:
+        LLM: ${LLM:-qwen2.5:7b}
+        EMBED: ${EMBED:-nomic-embed-text}
     image: insightforge:local
     stdin_open: true   # -i
     tty: true          # -t
     volumes:
-      # Folder cần analyze — override bằng PROJECT_DIR env var
       - ${PROJECT_DIR:-.}:/workspace
-      # Persist ChromaDB index + session history
       - insightforge_data:/root/.insightforge
     environment:
-      # Trỏ tới Ollama trên host
-      # Mac/Windows Docker Desktop: host.docker.internal tự động resolve
-      # Linux: cần extra_hosts bên dưới
-      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
-    # Cho phép container reach localhost của host trên Linux
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 volumes:
   insightforge_data:
