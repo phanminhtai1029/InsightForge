@@ -1,7 +1,9 @@
-.PHONY: setup run test docker-build docker-run docker-run-gpu clean help
+.PHONY: setup run run-win test docker-build docker-build-custom clean help
 
 # Folder mặc định để analyze
 PROJECT_DIR ?= .
+LLM         ?= qwen2.5:7b
+EMBED       ?= nomic-embed-text
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -10,26 +12,25 @@ help: ## Show this help
 setup: ## One-line native install (macOS/Linux/WSL2)
 	bash install.sh
 
-run: ## Run InsightForge on current directory (native)
-	insightforge .
+run: ## Auto-detect GPU và chạy (Linux/Mac/WSL2)
+	bash run.sh $(PROJECT_DIR)
+
+run-win: ## Auto-detect GPU và chạy (Windows PowerShell)
+	powershell -File run.ps1 $(PROJECT_DIR)
 
 test: ## Run test suite
 	uv run pytest tests/ -v
 
-docker-build: ## Build Docker image
+docker-build: ## Build Docker image (default: qwen2.5:7b + nomic-embed-text)
 	docker build -t insightforge:local .
 
-docker-run: ## Run via Docker, host Ollama (CPU or GPU on host)
-	@echo "Analyzing: $(PROJECT_DIR)"
-	PROJECT_DIR="$(PROJECT_DIR)" docker compose run --rm insightforge /workspace
+docker-build-custom: ## Build với model tùy chọn (make docker-build-custom LLM=llama3.2)
+	docker build \
+	  --build-arg LLM=$(LLM) \
+	  --build-arg EMBED=$(EMBED) \
+	  -t insightforge:local .
 
-docker-run-gpu: ## Run via Docker + Ollama in container with NVIDIA GPU
-	@echo "GPU mode — requires NVIDIA Container Toolkit"
-	PROJECT_DIR="$(PROJECT_DIR)" docker compose \
-	  -f docker-compose.yml -f docker-compose.gpu.yml \
-	  run --rm insightforge /workspace
-
-clean: ## Remove build artifacts and caches
+clean: ## Remove build artifacts và caches
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
 	find . -name "*.pyc" -delete 2>/dev/null || true
