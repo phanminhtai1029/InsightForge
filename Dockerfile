@@ -5,15 +5,12 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 WORKDIR /app
 
-# Layer 1: deps — chỉ rebuild khi pyproject.toml / uv.lock thay đổi
+# Layer 1: cài Python deps — chỉ rebuild khi pyproject.toml / uv.lock thay đổi
 COPY pyproject.toml uv.lock README.md .python-version ./
 RUN uv sync --no-dev --frozen --no-install-project
 
-# Layer 2: source code
-COPY insightforge/ ./insightforge/
-RUN uv sync --no-dev --frozen --no-editable
-
-# Layer 3: bake models vào image khi docker build
+# Layer 2: bake models vào image — ĐẶT TRƯỚC source code để cache models
+# không bị invalidate khi sửa source code
 ARG LLM=qwen2.5:7b
 ARG EMBED=nomic-embed-text
 
@@ -28,6 +25,10 @@ RUN ollama serve & OLLAMA_PID=$! && \
     kill $OLLAMA_PID 2>/dev/null; \
     wait $OLLAMA_PID 2>/dev/null; \
     exit $MODEL_EXIT
+
+# Layer 3: source code — thay đổi thường xuyên nhưng không ảnh hưởng model cache
+COPY insightforge/ ./insightforge/
+RUN uv sync --no-dev --frozen --no-editable
 
 # entrypoint sẽ start ollama + exec insightforge
 COPY entrypoint.sh /entrypoint.sh
