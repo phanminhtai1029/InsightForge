@@ -14,7 +14,7 @@ fi
 # Auto-detect GPU
 GPU_FLAG=""
 echo -n "[InsightForge] Detecting GPU... "
-if docker run --rm --gpus all "$IMAGE" true 2>/dev/null; then
+if docker run --rm --gpus all --entrypoint true "$IMAGE" 2>/dev/null; then
   GPU_FLAG="--gpus all"
   echo "GPU ✓ (CUDA mode)"
 else

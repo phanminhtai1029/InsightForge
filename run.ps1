@@ -16,7 +16,7 @@ if ($LASTEXITCODE -ne 0) {
 # Auto-detect GPU
 $gpuArgs = @()
 Write-Host -NoNewline "[InsightForge] Detecting GPU... "
-docker run --rm --gpus all $IMAGE true 2>$null | Out-Null
+docker run --rm --gpus all --entrypoint true $IMAGE 2>$null | Out-Null
 if ($LASTEXITCODE -eq 0) {
   $gpuArgs = @("--gpus", "all")
   Write-Host "GPU OK (CUDA mode)"
