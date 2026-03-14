@@ -21,6 +21,8 @@ class SyncAgent:
 
     def __init__(self, workflow: AgentWorkflow) -> None:
         self._workflow = workflow
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
 
     def chat(self, message: str) -> str:
         async def _run() -> str:
@@ -28,7 +30,7 @@ class SyncAgent:
             result = await handler
             return str(result)
 
-        return asyncio.run(_run())
+        return self._loop.run_until_complete(_run())
 
 
 def build_agent(
