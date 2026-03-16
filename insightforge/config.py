@@ -5,8 +5,8 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Config:
-    llm_model: str = "qwen2.5:7b"
-    embed_model: str = "nomic-embed-text"
+    llm_model: str = field(default_factory=lambda: os.environ.get("INSIGHTFORGE_LLM", "qwen2.5:7b"))
+    embed_model: str = field(default_factory=lambda: os.environ.get("INSIGHTFORGE_EMBED", "nomic-embed-text"))
     llm_keep_alive: str = "5m"     # unload after 5 minutes idle
     embed_keep_alive: str = "0"    # unload immediately after use
     ollama_base_url: str = field(

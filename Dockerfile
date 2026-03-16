@@ -26,6 +26,10 @@ RUN ollama serve & OLLAMA_PID=$! && \
     wait $OLLAMA_PID 2>/dev/null; \
     exit $MODEL_EXIT
 
+# Bake model names as runtime ENV so Config picks them up automatically
+ENV INSIGHTFORGE_LLM=${LLM}
+ENV INSIGHTFORGE_EMBED=${EMBED}
+
 # Layer 3: source code — thay đổi thường xuyên nhưng không ảnh hưởng model cache
 COPY insightforge/ ./insightforge/
 RUN uv sync --no-dev --frozen --no-editable

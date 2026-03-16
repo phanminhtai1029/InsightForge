@@ -1,5 +1,6 @@
 param(
-  [string]$ProjectDir = "."
+  [string]$ProjectDir = ".",
+  [Parameter(ValueFromRemainingArguments)][string[]]$ExtraArgs
 )
 
 $IMAGE = "insightforge:local"
@@ -39,6 +40,6 @@ $dockerArgs = @(
   "-v", "insightforge_data:/root/.insightforge",
   "-e", "GITHUB_TOKEN=$env:GITHUB_TOKEN",
   $IMAGE, "/workspace"
-)
+) + $ExtraArgs
 
 docker @dockerArgs

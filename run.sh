@@ -2,6 +2,7 @@
 set -euo pipefail
 
 PROJECT_DIR="${1:-.}"
+shift || true   # consume PROJECT_DIR; remaining args forwarded to insightforge
 IMAGE="insightforge:local"
 
 # Kiểm tra image đã được build chưa
@@ -26,4 +27,4 @@ docker run --rm -it $GPU_FLAG \
   -v "$(cd "$PROJECT_DIR" && pwd -P):/workspace" \
   -v insightforge_data:/root/.insightforge \
   -e GITHUB_TOKEN="${GITHUB_TOKEN:-}" \
-  "$IMAGE" /workspace
+  "$IMAGE" /workspace "$@"
