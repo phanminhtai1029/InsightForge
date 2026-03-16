@@ -1,4 +1,5 @@
 import asyncio
+from typing import Any
 
 from llama_index.core.agent import AgentWorkflow
 from llama_index.core.tools import FunctionTool
@@ -19,10 +20,22 @@ from insightforge.tools.github import scan_github_repo, read_github_file
 class SyncAgent:
     """Wrapper đồng bộ xung quanh AgentWorkflow async của LlamaIndex 0.14+."""
 
-    def __init__(self, workflow: AgentWorkflow) -> None:
+    def __init__(self, workflow: AgentWorkflow, tools: list[Any], llm: Ollama) -> None:
         self._workflow = workflow
+        self._tools = tools
+        self._llm = llm
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
+
+    def _rebuild_with_react(self) -> None:
+        """Rebuild workflow dùng ReActAgent khi model không support native tools API."""
+        from llama_index.core.agent.workflow import ReActAgent
+        self._workflow = AgentWorkflow.from_tools_or_functions(
+            tools_or_functions=self._tools,
+            llm=self._llm,
+            agent_cls=ReActAgent,
+            verbose=False,
+        )
 
     def chat(self, message: str) -> str:
         async def _run() -> str:
@@ -30,7 +43,13 @@ class SyncAgent:
             result = await handler
             return str(result)
 
-        return self._loop.run_until_complete(_run())
+        try:
+            return self._loop.run_until_complete(_run())
+        except Exception as e:
+            if "does not support tools" in str(e):
+                self._rebuild_with_react()
+                return self._loop.run_until_complete(_run())
+            raise
 
 
 def build_agent(
@@ -117,4 +136,4 @@ def build_agent(
         verbose=False,
     )
 
-    return SyncAgent(workflow)
+    return SyncAgent(workflow, tools=tools, llm=llm)
