@@ -30,12 +30,13 @@ class SyncAgent:
     def _rebuild_with_react(self) -> None:
         """Rebuild workflow dùng ReActAgent khi model không support native tools API."""
         from llama_index.core.agent.workflow import ReActAgent
-        self._workflow = AgentWorkflow.from_tools_or_functions(
-            tools_or_functions=self._tools,
+        react_agent = ReActAgent(
+            name="Agent",
+            description="A single agent that uses the provided tools or functions.",
+            tools=self._tools,
             llm=self._llm,
-            agent_cls=ReActAgent,
-            verbose=False,
         )
+        self._workflow = AgentWorkflow(agents=[react_agent], verbose=False)
 
     def chat(self, message: str) -> str:
         async def _run() -> str:
